@@ -10,6 +10,8 @@ import {
   useAddress,
   walletConnect,
   useContractEvents,
+  useContractWrite, 
+  useContract
 } from '@thirdweb-dev/react-native';
 import React, {useEffect} from 'react';
 import {
@@ -27,9 +29,11 @@ import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {TW_CLIENT_ID} from '@env';
 import {NdefTools, HceTools} from 'react-native-nfc-sdk';
 
-import {useContractWrite, useContract} from '@thirdweb-dev/react-native';
+// import {} from '@thirdweb-dev/react-native';
 import {ethers} from 'ethers';
-import nfcManager from 'react-native-nfc-manager';
+import NfcManager, {
+  NfcEvents,
+} from 'react-native-nfc-manager';
 
 const App = () => {
   const smartWalletConfig = {
@@ -68,17 +72,49 @@ const AppInner = () => {
     'transfer',
   );
 
-  // useEffect(async () => {
-  //   // get the initial launching tag
-  //   const bgTag = await nfcManager.getBackgroundTag();
-  //   readTag(bgTag);
+  // useEffect(() => {
+  //   async function initNfc() {
+  //     NfcManager.start();
+  //     console.log("Inside initNfc")
+  //     function onBackgroundTag(bgTag) {
+  //       let encodedArray = bgTag.ndefMessage[0].payload;
+  //       const decodedArray = encodedArray.map(num => String.fromCharCode(num));
+  //       // Join the characters to form a string
+  //       const decodedString = decodedArray.join('');
+  //       console.log("inside onBackgroundTag", decodedString.substring(3))
+  //       const arr = decodedString.substring(3).split('+');
+  //       const payee = arr[0];
+  //       let amt = arr[1];
+  //       amt = ethers.utils.parseEther(`${amt}`);
+  //       console.log('payee:' + payee + ' amount:' + amt);
+  //       if(address){
+  //         mutateAsync({ args: [payee, amt] }).then(() => {
+  //           Alert.alert('Success', `${amt} sent successfully`);
+  //         });
+  //       } else{
+  //         console.log("Waiting to connect...")
+  //       }
+        
+  //     }
 
-  //   // listen to other background tags after the app launched
-  //   nfcManager.setEventListener(
-  //     NfcEvents.DiscoverBackgroundTag,
-  //     onBackgroundTag,
-  //   );
-  // }, []);
+  //     // get the initial launching tag
+  //     const bgTag = await NfcManager.getBackgroundTag()
+  //     // console.log("BG TAGGG??",bgTag.ndefMessage[0].payload)
+  //     if (bgTag) {
+  //       onBackgroundTag(bgTag);
+  //     }
+
+  //     // listen to other background tags after the app launched
+  //     NfcManager.setEventListener(
+  //       NfcEvents.DiscoverBackgroundTag,
+  //       onBackgroundTag,
+  //     );
+  //   }
+  //   initNfc();
+  // }, [address]);
+
+
+
 
   const emulate = () => {
     // Send Address and amount
@@ -93,56 +129,33 @@ const AppInner = () => {
 
   // OLD READ TAG CODE
   // ==========================================
-  // const readTag = async () => {
-  //   // The read tag function sets an event handler for when a tag
-  //   // is read and returns a js object of
-  //   // {id: 'nfc-id', content: 'decoded-payload'}
-  //   try {
-  //     // Read the address and amount. Then call the mutateAsync function from useContractWrite
-  //     // Loading animation should be there and finally an alert or toast
-  //     const tag = await ndef.readTag();
-  //     if (tag) {
-  //       setTagContent(tag.content);
-  //       const arr = tag.content.split('+');
-  //       const payee = arr[0];
-  //       let amt = arr[1];
-  //       // TODO: Hardcoding decimals for testing. Please change
-  //       amt = ethers.utils.parseEther(`${amt}`);
-  //       console.log('addr:' + payee + ' amount:' + amt);
-  //       mutateAsync({args: [payee, amt]}).then(() => {
-  //         Alert.alert('Success', `${amt} sent successfully`);
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  //   ndef.cancelRequest(); // Cancel the request to the nfc hardware
-  // };
-
-  // ==========================================
-
-  // NEW CODE
-
-  // https://link.trustwallet.com/send?asset=c20000714&address=0x8dc75d0168228B0Daa9aa8cA9f22cd80d9EcC3D4&amount=0.001
-
   const readTag = async () => {
+    // The read tag function sets an event handler for when a tag
+    // is read and returns a js object of
+    // {id: 'nfc-id', content: 'decoded-payload'}
     try {
-      // Read the address and amount and add it
+      // Read the address and amount. Then call the mutateAsync function from useContractWrite
+      // Loading animation should be there and finally an alert or toast
       const tag = await ndef.readTag();
       if (tag) {
         setTagContent(tag.content);
         const arr = tag.content.split('+');
-        const addr = arr[0];
+        const payee = arr[0];
         let amt = arr[1];
-        // Alert.alert('Success', `Called ReadTag`);
-        const deepLinkUrl = `https://link.trustwallet.com/send?asset=c20000714&address=${addr}&amount=${amt}`;
-        Linking.openURL(deepLinkUrl);
+        // TODO: Hardcoding decimals for testing. Please change
+        amt = ethers.utils.parseEther(`${amt}`);
+        console.log('addr:' + payee + ' amount:' + amt);
+        await mutateAsync({args: [payee, amt]})
+        Alert.alert('Success', `${amt} sent successfully`);
       }
     } catch (err) {
       console.error(err);
     }
     ndef.cancelRequest(); // Cancel the request to the nfc hardware
   };
+
+  // ==========================================
+
 
   const textStyles = {
     color: isDarkMode ? Colors.white : Colors.black,
