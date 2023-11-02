@@ -72,46 +72,46 @@ const AppInner = () => {
     'transfer',
   );
 
-  // useEffect(() => {
-  //   async function initNfc() {
-  //     NfcManager.start();
-  //     console.log("Inside initNfc")
-  //     function onBackgroundTag(bgTag) {
-  //       let encodedArray = bgTag.ndefMessage[0].payload;
-  //       const decodedArray = encodedArray.map(num => String.fromCharCode(num));
-  //       // Join the characters to form a string
-  //       const decodedString = decodedArray.join('');
-  //       console.log("inside onBackgroundTag", decodedString.substring(3))
-  //       const arr = decodedString.substring(3).split('+');
-  //       const payee = arr[0];
-  //       let amt = arr[1];
-  //       amt = ethers.utils.parseEther(`${amt}`);
-  //       console.log('payee:' + payee + ' amount:' + amt);
-  //       if(address){
-  //         mutateAsync({ args: [payee, amt] }).then(() => {
-  //           Alert.alert('Success', `${amt} sent successfully`);
-  //         });
-  //       } else{
-  //         console.log("Waiting to connect...")
-  //       }
+  useEffect(() => {
+    async function initNfc() {
+      NfcManager.start();
+      console.log("Inside initNfc")
+      function onBackgroundTag(bgTag) {
+        let encodedArray = bgTag.ndefMessage[0].payload;
+        const decodedArray = encodedArray.map(num => String.fromCharCode(num));
+        // Join the characters to form a string
+        const decodedString = decodedArray.join('');
+        console.log("inside onBackgroundTag", decodedString.substring(3))
+        const arr = decodedString.substring(3).split('+');
+        const payee = arr[0];
+        let amt = arr[1];
+        amt = ethers.utils.parseEther(`${amt}`);
+        console.log('payee:' + payee + ' amount:' + amt);
+        if(address){
+          mutateAsync({ args: [payee, amt] }).then(() => {
+            Alert.alert('Success', `${amt} sent successfully`);
+          });
+        } else{
+          console.log("Waiting to connect...")
+        }
         
-  //     }
+      }
 
-  //     // get the initial launching tag
-  //     const bgTag = await NfcManager.getBackgroundTag()
-  //     // console.log("BG TAGGG??",bgTag.ndefMessage[0].payload)
-  //     if (bgTag) {
-  //       onBackgroundTag(bgTag);
-  //     }
+      // get the initial launching tag
+      const bgTag = await NfcManager.getBackgroundTag()
+      // console.log("BG TAGGG??",bgTag.ndefMessage[0].payload)
+      if (bgTag) {
+        onBackgroundTag(bgTag);
+      }
 
-  //     // listen to other background tags after the app launched
-  //     NfcManager.setEventListener(
-  //       NfcEvents.DiscoverBackgroundTag,
-  //       onBackgroundTag,
-  //     );
-  //   }
-  //   initNfc();
-  // }, [address]);
+      // listen to other background tags after the app launched
+      NfcManager.setEventListener(
+        NfcEvents.DiscoverBackgroundTag,
+        onBackgroundTag,
+      );
+    }
+    initNfc();
+  }, [address]);
 
 
 
